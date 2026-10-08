@@ -56,7 +56,7 @@
  function assistLabel(f){const p=assistInfo(f.assist);return p.label||p.name||p.skill||f.assist?.name||'援助';}
  function assistRoleLabel(kind){return ({grab:'抓取',rush:'突进',strike:'突进',control:'控制',barrier:'防护',support:'补给',projectile:'气弹',beam:'光束',slash:'剑击'})[String(kind||'').toLowerCase()]||'援助';}
  function assistCooldownMax(f){const p=assistInfo(f.assist);return Number(f.assistCooldownMax||p.cooldown||p.cooldownTicks)||Math.max(1,Number(f.assistCooldown)||1);}
- function hud(c,m){
+ function hud(c,m,keyLabel){
   for(const f of m.fighters){const right=f.side===1,x=right?1179:16,panelX=right?695:105;
    c.save();polygon(c,[[x,18],[x+76,18],[x+85,34],[x+85,103],[x+12,103],[x,85]],'#07131f',right?'#ff9f44':'#5cf0ff',3);portrait(c,f.spec,x+4,22,76,76,'tile');c.restore();
    text(c,f.spec.name+(f.spec.form?' · '+f.spec.form:''),right?1170:111,31,17,'#fff',right?'right':'left');
@@ -77,7 +77,7 @@
    meter(c,ax+78,663,184,9,1-Math.min(1,f.assistCooldown/cdMax),'#f8c655');
    text(c,role,ax+262,651,9,'#9ab9ce','right',700);
    meter(c,ax+78,682,184,5,f.stamina/100,'#7ad8ed');
-   text(c,f.burstFrames>0?`爆气 ${Math.ceil(f.burstFrames/60)}s`:f.burstCooldown>0?`爆气冷却 ${Math.ceil(f.burstCooldown/60)}s`:'S + I  爆气',ax+78,706,11,f.burstFrames>0?'#fff4a3':'#b4c5cc');
+   text(c,f.burstFrames>0?`爆气 ${Math.ceil(f.burstFrames/60)}s`:f.burstCooldown>0?`爆气冷却 ${Math.ceil(f.burstCooldown/60)}s`:(keyLabel?.(f.side,'burst')||(right?'↓ + 5':'S + I'))+'  爆气',ax+78,706,11,f.burstFrames>0?'#fff4a3':'#b4c5cc');
    /* 必杀招式名（按正传身份表显示） */
    const mv=DV.resolveMoves?DV.resolveMoves(f):null;
    const supName=f.state==='super'&&f.superMove?.label?f.superMove.label:(mv&&mv.super&&mv.super.label&&mv.super.label!=='super')?mv.super.label:null;
@@ -96,7 +96,7 @@
   polygon(c,[[604,22],[676,22],[697,49],[679,91],[601,91],[583,49]],'#081a2b','#86d4e4',3);
   text(c,m.options.training||!Number.isFinite(m.time)?'∞':String(m.time).padStart(2,'0'),640,74,43,'#defcff','center',900);
   text(c,m.options.training?'TRAINING':!Number.isFinite(m.time)?'NO LIMIT':'TIME',640,107,10,'#d1e8ec','center');
-  const cue=m.options.training&&!m.options.tutorial&&DV.trainingCue?.(m.fighters[0]);
+  const cue=m.options.training&&!m.options.tutorial&&DV.trainingCue?.(m.fighters[0],keyLabel? action=>keyLabel(0,action):undefined);
   if(cue){
    const color=cue.kind==='pursuit'?'#ffe08a':cue.kind==='confirm'?'#98f0d1':'#9bdefb';
    c.fillStyle='#071725ed';c.fillRect(370,142,540,44);
@@ -216,11 +216,11 @@
   }
   c.restore();
  }
- function render(c,m,stage){
+ function render(c,m,stage,keyLabel){
   /* 整帧渲染包裹在 try/catch 内：渲染异常绝不允许冒泡到 requestAnimationFrame，
      否则循环被终止、画面永久卡死（用户看到的现象）。失败时退化为纯背景。 */
   try{
-   renderFrame(c,m,stage);
+   renderFrame(c,m,stage,keyLabel);
   }catch(err){
    try{
     if(typeof console!=='undefined'&&console.error)console.error('[DV] render failed:',err);
@@ -241,7 +241,7 @@
    centerX:Math.max(halfW,Math.min(W-halfW,fighter.x)),
    centerY:Math.max(halfH,Math.min(H-halfH,F-fighter.y-80))};
  }
- function renderFrame(c,m,stage){
+ function renderFrame(c,m,stage,keyLabel){
   c.clearRect(0,0,W,H);c.save();
   const ko=koCamera(m);
   if(ko){c.translate(W/2,H/2);c.scale(ko.zoom,ko.zoom);c.translate(-ko.centerX,-ko.centerY);}
@@ -309,7 +309,7 @@
   for(const e of (m.presentation?.effects||[])){if(e.kind==='hit')hitSpark(c,e);else if(e.kind==='heavy')heavyImpact(c,e);else if(e.kind==='guard')guardShield(c,e);else if(e.kind==='landing')landingDust(c,e);else if(e.kind==='feedback'){c.save();c.globalAlpha=Math.min(1,e.life/12);const y=F-e.y-(e.max-e.life)*.7;c.strokeStyle='#06121f';c.lineWidth=4;c.font='800 15px "Microsoft YaHei",sans-serif';c.textAlign='center';c.strokeText(e.label,e.x,y);text(c,e.label,e.x,y,15,e.color,'center');c.restore();}}
   c.restore();
   const bottom=c.createLinearGradient(0,590,0,H);bottom.addColorStop(0,'#01081400');bottom.addColorStop(1,'#010814cc');c.fillStyle=bottom;c.fillRect(0,590,W,130);
-  hud(c,m);
+  hud(c,m,keyLabel);
   if(m.debugBoxes){c.fillStyle='#061322df';c.fillRect(350,124,580,62);const f=m.fighters[0];text(c,`P1 ${f.state} · tick ${f.frame} · 预输入 ${f.buffer||'—'} · 距离 ${Math.round(Math.abs(f.x-m.fighters[1].x))}`,640,148,14,'#fff','center');text(c,`绿色：受击框　红色：有效攻击框　${m.lastHit?`${m.lastHit.combo} HIT / ${m.lastHit.total} DAMAGE`:'等待命中'}`,640,172,14,'#b2eadb','center');}
   text(c,stage?.name||'',640,704,12,'#e3ecebcc','center',600);
   if(m.phase==='intro'){

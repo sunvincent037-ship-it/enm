@@ -43,7 +43,7 @@
  }
  class App{
   constructor(){
-    this.active=false;this.screen='select';this.side=0;this.step=0;this.indices=[1,13];this.assistIndices=[3,4];this.assistSpecMode=false;this.stageIndex=0;this.filter='ALL';this.visible=[];this.cursor=0;this.mode='cpu';this.difficulty='normal';this.format='single';this.timer='99';this.sound=DV.BT3Sound?new DV.BT3Sound(new Sound()):new Sound();this.pressed=new Set();this.modalKind=null;this.lastTime=0;this.noticeUntil=0;this.paintRevision=0;this.selectPreviewSeconds=0;this.tournament=null;this.tournamentResultHandled=false;this.lastGameOutcome=null;this.restore();
+    this.active=false;this.screen='select';this.side=0;this.step=0;this.indices=[1,13];this.assistIndices=[3,4];this.assistSpecMode=false;this.stageIndex=0;this.filter='ALL';this.visible=[];this.cursor=0;this.mode='cpu';this.difficulty='normal';this.format='single';this.timer='99';this.sound=DV.BT3Sound?new DV.BT3Sound(new Sound()):new Sound();this.pressed=new Set();this.modalKind=null;this.lastTime=0;this.noticeUntil=0;this.paintRevision=0;this.selectPreviewSeconds=0;this.tournament=null;this.tournamentResultHandled=false;this.lastGameOutcome=null;this.restore();this.keyboardBindings=DV.loadKeyboardBindings?.();
    this.root=document.createElement('section');this.root.id='dv-root';this.root.hidden=true;this.root.setAttribute('aria-label','龙珠天下一对战');document.body.appendChild(this.root);
    for(const name of ['pointerdown','click','touchstart','touchend'])this.root.addEventListener(name,e=>e.stopPropagation());
    root.addEventListener('keydown',e=>this.key(e,true),true);root.addEventListener('keyup',e=>this.key(e,false),true);
@@ -67,10 +67,10 @@
    try{const saved=JSON.parse(localStorage.getItem('dragon-tournament-v1')||'null'),cup=DV.upgradeTournament(saved,DV.roster);if(DV.validateTournament(cup,DV.roster)&&cup.stageIndex<DV.stages.length)this.tournament=cup;}catch{}
   }
   normalizeAssists(){if(this.assistSpecMode)return;this.assistIndices=this.assistIndices.map(i=>DV.roster.findIndex(s=>s.characterId===DV.characters[Number(i)]?.id)).map((i,n)=>i>=0?i:n);this.assistSpecMode=true;}
-  save(){if(this.tutorial)return;try{localStorage.setItem('dragon-versus-v1',JSON.stringify({indices:this.indices,assistIndices:this.assistIndices,assistSpecMode:true,stageIndex:this.stageIndex,difficulty:this.difficulty,format:this.format,timer:this.timer,mode:this.mode,muted:this.sound.muted}));}catch{}}
+  save(){if(this.tutorial)return;try{localStorage.setItem('dragon-versus-v1',JSON.stringify({indices:this.indices,assistIndices:this.assistIndices,assistSpecMode:!!this.assistSpecMode,stageIndex:this.stageIndex,difficulty:this.difficulty,format:this.format,timer:this.timer,mode:this.mode,muted:this.sound.muted}));}catch{}}
   saveTournament(){try{localStorage.setItem('dragon-tournament-v1',JSON.stringify(this.tournament));}catch{}}
-  open(onExit,entry='versus'){if(this.active)return;this.onExit=onExit||(()=>{});this.active=true;this.root.hidden=false;document.body.classList.add('dv-active');this.sound.unlock();if(entry==='tournament'){this.mode='tournament';this.stageIndex=0;this.showTournamentSettings();}else{if(this.mode==='tournament')this.mode='cpu';this.showSelect();}this.lastTime=performance.now();this.raf=requestAnimationFrame(t=>this.loop(t));}
-  close(){this.touchControls?.destroy();this.touchControls=null;this.network?.leave();this.restoreTutorialSelection();this.artLoading=false;this.sound.stop?.();this.active=false;this.root.hidden=true;document.body.classList.remove('dv-active');cancelAnimationFrame(this.raf);this.clearHeld();this.save();this.onExit();}
+  open(onExit,entry='versus'){if(this.active)return;this.onExit=onExit||(()=>{});this.active=true;this.root.hidden=false;document.body.classList.add('dv-active');this.sound.unlock();if(entry==='preferences'){this.showPreferences();}else if(entry==='tournament'){this.mode='tournament';this.stageIndex=0;this.showTournamentSettings();}else{if(this.mode==='tournament')this.mode='cpu';this.showSelect();}this.lastTime=performance.now();this.raf=requestAnimationFrame(t=>this.loop(t));}
+  close(){const controls=this.touchControls;this.touchControls=null;controls?.destroy();this.network?.leave();this.restoreTutorialSelection();this.artLoading=false;this.sound.stop?.();this.active=false;this.root.hidden=true;document.body.classList.remove('dv-active');cancelAnimationFrame(this.raf);this.clearHeld();this.save();this.onExit();}
   el(q){return this.root.querySelector(q);}
   fighter(side){return DV.roster[this.indices[side]]||DV.roster[0];}
   showTransforms(side=0){
@@ -225,6 +225,9 @@
    this.match=new DV.Match({p1:this.fighter(0),p2:this.fighter(1),assist1:assist(0),assist2:assist(1),mode:['local','online'].includes(this.mode)?'local':'cpu',difficulty:this.difficulty,training:this.mode==='training',timeLimit:this.mode==='tournament'&&this.timer==='infinite'?null:99,onEvent:(type,data)=>this.combatEvent(type,data)});
    this.sound.stop?.();this.sound.preload?.(this.match.fighters.flatMap(f=>[f.spec,f.assist]));
    this.root.innerHTML=`<div class="dv-battle"><canvas id="dv-arena" width="1280" height="720" aria-label="龙珠对战场地"></canvas><div class="dv-battlebar"><span>${this.mode==='tournament'?`<b>${['八强赛','半决赛','决赛'][this.tournament.round]} · 第 ${this.tournament.duel.games.length+1} 局 · ${this.tournament.duel.playerWins}:${this.tournament.duel.opponentWins}</b>　`:''}${this.battleHints()}</span><div><button data-ui="moves">出招表</button><button data-ui="transform">变身 T</button>${this.mode==='local'?'<button data-ui="transform2">P2 变身 0</button>':''}${this.mode==='training'?`${this.tutorial?'':'<button data-ui="tutorial">一分钟教学</button>'}<button data-ui="boxes">判定 F3</button><button data-ui="reset-training">重置训练</button>`:''}<button data-ui="help">键位</button><button data-ui="fullscreen">全屏 F</button><button data-ui="layout" class="dv-layout-entry">按键</button><button data-ui="pause">${this.mode==='online'?'菜单':'暂停 Esc'}</button></div></div><div class="dv-toast" role="status"></div><div class="dv-bond-toast" role="status"></div>${this.tutorial?this.tutorialMarkup():''}${this.touchMarkup()}</div>`;
+   const transformButton=this.el('[data-ui="transform"]'),rivalTransformButton=this.el('[data-ui="transform2"]');
+   if(transformButton)transformButton.textContent='变身 '+this.primaryKey(0,'transform');
+   if(rivalTransformButton)rivalTransformButton.textContent='P2 变身 '+this.primaryKey(1,'transform');
    this.ctx=this.el('#dv-arena').getContext('2d');this.bindUI();this.bindTouchControls();
    this.match.options.tutorial=!!this.tutorial;this.updateTutorial();this.prepareBattleArt();
   }
@@ -249,10 +252,12 @@
   }
   updateTutorial(){
    if(!this.tutorial)return;const panel=this.el('.dv-tutorial');if(!panel)return;
-   const state=this.tutorial.snapshot(this.match),signature=`${state.step}:${state.complete}:${state.telegraph}`;
+   const state=this.tutorial.snapshot(this.match);
+   const key=this.keyboardBindings&&state.info.actions?(state.info.keyPrefix||'')+state.info.actions.map(action=>this.primaryKey(0,action)).join(' / '):state.info.key;
+   const signature=`${state.step}:${state.complete}:${state.telegraph}:${key}`;
    if(this.tutorialPaint!==signature){
     this.tutorialPaint=signature;
-    panel.querySelector('.dv-tutorial-copy').innerHTML=`<small>${state.complete?'教学完成':`互动教学 · ${state.step+1} / 4`}</small><h2>${esc(state.info.title)}</h2><p>${esc(state.telegraph?'对手即将出拳 · 按住防御':state.info.task)}</p>${state.complete?'':`<div class="dv-tutorial-control"><kbd class="dv-tutorial-key">${esc(state.info.key)}</kbd><b class="dv-tutorial-touch">${esc(state.info.touch)}</b><span>${esc(state.telegraph?'对手即将出拳 · 按住防御':state.info.tip)}</span></div>`}`;
+    panel.querySelector('.dv-tutorial-copy').innerHTML=`<small>${state.complete?'教学完成':`互动教学 · ${state.step+1} / 4`}</small><h2>${esc(state.info.title)}</h2><p>${esc(state.telegraph?'对手即将出拳 · 按住防御':state.info.task)}</p>${state.complete?'':`<div class="dv-tutorial-control"><kbd class="dv-tutorial-key">${esc(key)}</kbd><b class="dv-tutorial-touch">${esc(state.info.touch)}</b><span>${esc(state.telegraph?'对手即将出拳 · 按住防御':state.info.tip)}</span></div>`}`;
     panel.classList.toggle('is-telegraph',!!state.telegraph);panel.classList.toggle('is-complete',state.complete);
     panel.querySelector('[data-ui="tutorial-retry"]').hidden=state.complete;
     panel.querySelector('[data-ui="tutorial-exit"]').textContent=state.complete?'完成，返回':'跳过教学';
@@ -342,6 +347,9 @@
    }
    const title=winner===null?'DRAW · 平局':this.match.fighters[winner].spec.name+' 获胜';const description=winner===null?'双方势均力敌，再战一局。':`${this.match.fighters[winner].spec.form} · ${DV.stages[this.stageIndex].name}`;this.showModal('result',title,`<p>${esc(description)}</p><p>${winner===null?'':`剩余体力 ${Math.ceil(this.match.fighters[winner].hp)}　·　剩余时间 ${this.match.time} 秒`}</p>`,[{id:'rematch',label:'再战一局',primary:true},{id:'select',label:'返回选人'},{id:'exit',label:'返回大厅'}]);}
   key(e,down){
+   if(this.active&&this.screen==='keyboard-settings'){this.keyboardSettingsKey(e,down);return;}
+   if(this.active&&this.screen==='battle'&&!this.modalKind&&!this.touchControls?.editing&&DV.remapBattleKey)e=DV.remapBattleKey(e,this.keyboardBindings);
+   if(this.active&&this.screen==='preferences'&&!this.modalKind){e.stopImmediatePropagation();if(e.code==='Escape'){e.preventDefault();if(down)this.close();}return;}
    if(this.active&&(this.screen==='online'||this.touchControls?.editing)){e.stopImmediatePropagation();if(e.code==='Escape'){e.preventDefault();if(down){if(this.touchControls?.editing)this.touchControls.closeEditor(false);else this.showSelect();}}return;}
    if(!this.active)return;if(e.target?.isContentEditable||['INPUT','TEXTAREA'].includes(e.target?.tagName)){e.stopImmediatePropagation();return;}const relevant=['Space','Enter','Escape','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','KeyJ','KeyH','KeyK','KeyL','KeyU','KeyI','KeyO','KeyG','KeyC','KeyB','KeyY','KeyZ','KeyV','KeyX','KeyQ','KeyE','KeyF','KeyM','KeyR','KeyT','Digit0','Numpad0','NumpadAdd','Minus','F3',...Object.keys(P2)];if(!relevant.includes(e.code)){e.stopImmediatePropagation();return;}
    // Preserve native select navigation, but never let the old adventure listener see it.
@@ -522,7 +530,7 @@
       this.sound.syncCharge?.(this.match);
       this.updatePresentation();
       try{
-        DV.renderBattle(this.ctx,this.onlineRenderMatch?.()||this.match,DV.stages[this.stageIndex]);
+        DV.renderBattle(this.ctx,this.onlineRenderMatch?.()||this.match,DV.stages[this.stageIndex],(side,action)=>this.primaryKey(side,action));
       }catch(err){ this.reportFrameError('draw',err); }        // 绘制：出错只跳过本帧
       if(time>this.noticeUntil)this.el('.dv-toast')?.classList.remove('visible');
       if(this.resultPending&&time>=this.resultPending){this.resultPending=0;this.result();}

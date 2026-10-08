@@ -11,7 +11,7 @@
    this.network=new DV.NetworkClient({url:DV.resolveServerURL(root.DV_NETWORK_CONFIG||{},root.location),onMessage:message=>this.handleOnlineMessage(message),onStatus:(status,message)=>this.updateOnlineStatus(status,message)});
    this.renderOnlineEntry();if(this.network.url)this.network.connect().catch(error=>this.onlineError(error.message));
   },
-  onlineHeader(subtitle){return `<header class="dv-online-header"><div><small>DRAGON CLASH / ONLINE</small><h1>好友对战<span>${esc(subtitle)}</span></h1></div><button data-online="leave">返回选人 ↗</button></header>`;},
+  onlineHeader(subtitle){return `<header class="dv-online-header"><div><small>DRAGON CLASH / ONLINE</small><h1>好友对战<span>${esc(subtitle)}</span></h1></div><nav aria-label="联机导航"><button data-online="home">返回首页 ↗</button> <button data-online="leave">返回选人 ↗</button></nav></header>`;},
   renderOnlineEntry(){
    this.screen='online';this.match=null;this.touchControls?.destroy();this.touchControls=null;
    const enabled=this.network.status==='connected',configured=!!this.network.url;
@@ -38,6 +38,7 @@
   bindOnlineUI(){
    this.root.querySelectorAll('[data-online]').forEach(button=>button.onclick=async()=>{
     this.sound.unlock();const action=button.dataset.online;
+    if(action==='home'){this.close();return;}
     if(action==='leave'){this.showSelect();return;}
     if(action==='retry'){this.network.connect().catch(error=>this.onlineError(error.message));return;}
     if(action==='create'){this.network.create(this.el('[data-online-fighter]').value,this.el('[data-online-assist]').value);return;}

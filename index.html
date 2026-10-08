@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="versus/styles.css">
   <link rel="stylesheet" href="versus/touch-controls.css">
   <link rel="stylesheet" href="versus/online.css">
+  <link rel="stylesheet" href="versus/settings.css">
   <style>
     * {
       box-sizing: border-box;
@@ -2677,7 +2678,9 @@
     // END GENERATED VERSUS SKILL MANIFESTS
     const titleMenuItems = [
       { label: "对战模式", mode: "versus" },
-      { label: "天下第一武道大会", mode: "tournament" }
+      { label: "天下第一武道大会", mode: "tournament" },
+      { label: "房间号联机", mode: "online" },
+      { label: "设置", mode: "preferences" }
     ];
     const chapterSelectItems = [
       {
@@ -7756,7 +7759,6 @@
     function returnToTitleMenu() {
       stopAllGameSounds();
       clearVersusCombatState();
-      if (game.state === "title") return;
       resetKoSequence();
       game.state = "title";
       game.selectedTitleMenuIndex = 0;
@@ -7812,6 +7814,34 @@
         keys.clear();
         resetMobileMovement();
         window.DV.openTournament(() => returnToTitleMenu());
+      }
+    }
+    function openVersusOnlineMenu() {
+      if (window.DV && typeof window.DV.openOnline === "function" && !window.DV.app?.active) {
+        clearVersusCombatState();
+        stopAllGameSounds();
+        game.versusMode = false;
+        stopPowerUp();
+        stopKaioken();
+        cancelKamehamehaCharge();
+        keys.clear();
+        resetMobileMovement();
+        resetMobileActionLatches();
+        window.DV.openOnline(() => returnToTitleMenu());
+      }
+    }
+    function openVersusSettingsMenu() {
+      if (window.DV && typeof window.DV.openSettings === "function" && !window.DV.app?.active) {
+        clearVersusCombatState();
+        stopAllGameSounds();
+        game.versusMode = false;
+        stopPowerUp();
+        stopKaioken();
+        cancelKamehamehaCharge();
+        keys.clear();
+        resetMobileMovement();
+        resetMobileActionLatches();
+        window.DV.openSettings(() => returnToTitleMenu());
       }
     }
     function openVersusSelectMenu(preserveSelection = false) {
@@ -18938,6 +18968,14 @@
         openVersusTournamentMenu();
         return;
       }
+      if (item.mode === "online") {
+        openVersusOnlineMenu();
+        return;
+      }
+      if (item.mode === "preferences") {
+        openVersusSettingsMenu();
+        return;
+      }
       if (item.mode === "stage") {
         openChapterSelectMenu();
         return;
@@ -19621,6 +19659,8 @@
   <script src="versus/network.js"></script>
   <script src="versus/touch-controls.js"></script>
   <script src="versus/app.js"></script>
+  <script src="versus/keyboard-settings.js"></script>
+  <script src="versus/settings-ui.js"></script>
   <script src="versus/online-ui.js"></script>
   <script src="versus/bt3-audit.js"></script>
   <script src="versus/boot.js"></script>

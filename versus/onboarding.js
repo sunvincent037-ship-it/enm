@@ -1,16 +1,16 @@
 (function(root){
  'use strict';const DV=root.DV=root.DV||{};
  const tutorialSteps=[
-  {title:'靠近对手',key:'A / D',touch:'左右推动摇杆',task:'向任意方向移动一段距离',tip:'先熟悉距离。移动可以靠近对手，也可以避开攻击。'},
-  {title:'打中一拳',key:'J',touch:'短按普攻',task:'用轻攻击实际命中一次',tip:'已经放在近身距离。看准对手，用轻击打中；连续轻击可以衔接。'},
-  {title:'挡下一拳',key:'按住 S',touch:'摇杆下拉并保持',task:'防住对手预告后的轻击',tip:'蓝色提示出现时保持防御。成功挡住攻击，体力不会被普通轻击扣除。'},
-  {title:'释放必杀',key:'I',touch:'必杀',task:'用龟派气功实际命中',tip:'气力已补满。在地面面向对手释放；必杀需要准备时间。'}
+  {title:'靠近对手',key:'A / D',actions:['left','right'],touch:'左右推动摇杆',task:'向任意方向移动一段距离',tip:'先熟悉距离。移动可以靠近对手，也可以避开攻击。'},
+  {title:'打中一拳',key:'J',actions:['light'],touch:'短按普攻',task:'用轻攻击实际命中一次',tip:'已经放在近身距离。看准对手，用轻击打中；连续轻击可以衔接。'},
+  {title:'挡下一拳',key:'按住 S',actions:['guard'],keyPrefix:'按住 ',touch:'摇杆下拉并保持',task:'防住对手预告后的轻击',tip:'蓝色提示出现时保持防御。成功挡住攻击，体力不会被普通轻击扣除。'},
+  {title:'释放必杀',key:'I',actions:['super'],touch:'必杀',task:'用龟派气功实际命中',tip:'气力已补满。在地面面向对手释放；必杀需要准备时间。'}
  ];
  const actionLabels={light:'轻击',attack:'轻击',heavy:'重击',jump:'跳跃',dash:'冲刺',ki:'气弹',super:'必杀',assist:'援助',grab:'投技',counter:'反击'};
- function trainingCue(f){
+ function trainingCue(f,key=action=>({jump:'K',dash:'L',heavy:'H',ki:'U',super:'I'}[action])){
   if(!f)return null;
-  if(f.pursuitTicks>0)return {kind:'pursuit',text:'浮空命中 · K 跳跃 / L 冲刺追击',remaining:f.pursuitTicks/12};
-  if(f.confirmTicks>0&&f.confirmState===f.state)return {kind:'confirm',text:'命中确认 · H 重击 / U 气弹 / I 必杀',remaining:f.confirmTicks/12};
+  if(f.pursuitTicks>0)return {kind:'pursuit',text:`浮空命中 · ${key('jump')} 跳跃 / ${key('dash')} 冲刺追击`,remaining:f.pursuitTicks/12};
+  if(f.confirmTicks>0&&f.confirmState===f.state)return {kind:'confirm',text:`命中确认 · ${key('heavy')} 重击 / ${key('ki')} 气弹 / ${key('super')} 必杀`,remaining:f.confirmTicks/12};
   if(f.buffer&&f.bufferTicks>0)return {kind:'buffer',text:'已预输入 · '+(actionLabels[f.buffer]||'下一招')+'，动作结束后衔接',remaining:1};
   return null;
  }

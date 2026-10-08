@@ -1,0 +1,83 @@
+.dv-preferences {
+  width: min(1000px, 100%); min-height: 100%; margin: auto;
+  padding: clamp(20px, 4vw, 48px); background: #08111f; color: #edf6ff;
+}
+.dv-preferences-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+  padding-bottom: 28px; border-bottom: 1px solid #33415a;
+}
+.dv-preferences small { color: #91a7bf; font-size: 10px; letter-spacing: 2px; }
+.dv-preferences h1 { margin: 12px 0; font-size: clamp(30px, 5vw, 44px); }
+.dv-preferences-header p, .dv-preference-row p {
+  margin: 0; color: #a6b8cb; font-size: 13px; line-height: 1.8;
+}
+#dv-root .dv-preferences button {
+  min-height: 44px; border: 1px solid #4c657c; border-radius: 7px;
+  padding: 11px 18px; background: #142438; font-size: 13px; touch-action: manipulation;
+}
+#dv-root .dv-preferences button:hover { border-color: #9fd2e8; background: #1b3147; }
+#dv-root .dv-preferences .dv-preference-primary {
+  background: #f3c56a; border-color: #f3c56a; color: #182033; font-weight: 800;
+}
+.dv-preferences-list { display: flex; flex-direction: column; }
+.dv-preference-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 32px;
+  padding: 27px 0; border-bottom: 1px solid #26384c;
+}
+.dv-preference-row h2 { margin: 8px 0; font-size: 21px; }
+.dv-preference-row button { flex: 0 0 auto; min-width: 172px; }
+#dv-root .dv-preferences [data-preference="sound"][aria-pressed="false"] {
+  border-color: #69a9ad; color: #acf1e8;
+}
+.dv-preferences-note { margin-top: 24px; color: #839ab1; font-size: 11px; line-height: 1.8; }
+.dv-layout-preview > canvas {
+  background-color: #102136;
+  background-image: linear-gradient(#9bcce50a 1px, transparent 1px), linear-gradient(90deg, #9bcce50a 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.dv-layout-caption {
+  position: absolute; top: 34%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: calc(100% - 32px); text-align: center; pointer-events: none;
+}
+.dv-layout-caption small { color: #7698b3; font-size: 11px; letter-spacing: 4px; }
+.dv-layout-caption strong { color: #d3e4ee; font-size: clamp(16px, 3vw, 28px); }
+.dv-layout-caption span { color: #88a8bd; font-size: 12px; }
+.dv-layout-preview .dv-battlebar { z-index: 51; pointer-events: none; }
+.dv-layout-preview [data-layout-back] { pointer-events: auto; }
+.dv-keyboard-tabs { display: flex; gap: 8px; margin: 24px 0 12px; }
+#dv-root .dv-keyboard-tabs button[aria-pressed="true"] { border-color: #f3c56a; color: #ffe0a5; }
+.dv-keyboard-status { min-height: 32px; color: #a9e4e8; font-size: 13px; line-height: 1.8; }
+.dv-keyboard-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.dv-keyboard-list > div, .dv-keyboard-list > label, .dv-keyboard-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 70px; padding: 12px 0; border-bottom: 1px solid #26384c; font-size: 13px;
+}
+.dv-keyboard-list button { min-width: 100px; font-variant-numeric: tabular-nums; }
+.dv-keyboard-note { color: #91a7bf; font-size: 12px; line-height: 1.9; }
+#dv-root .dv-keyboard-list button[aria-pressed="true"] { border-color: #f3c56a; color: #ffe0a5; }
+.dv-keyboard-actions {
+  position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 24px; padding: 16px 0 max(16px, env(safe-area-inset-bottom, 0px)); background: #08111f;
+}
+#dv-root .dv-keyboard-actions button:last-child { border-color: #f3c56a; color: #ffe0a5; }
+@media (max-width: 600px) {
+  .dv-preferences-header { gap: 12px; padding-bottom: 20px; }
+  #dv-root .dv-preferences-header button { padding: 10px 12px; white-space: nowrap; }
+  .dv-preferences-header p { max-width: 200px; }
+  .dv-preference-row { align-items: stretch; flex-direction: column; gap: 16px; padding: 22px 0; }
+  .dv-preference-row button { align-self: flex-start; }
+  .dv-keyboard-list { grid-template-columns: 1fr; }
+  .dv-keyboard-actions { flex-wrap: wrap; }
+}
+@media (pointer: coarse) and (orientation: portrait), (any-pointer: coarse) and (orientation: portrait) {
+  .dv-layout-caption { top: clamp(75px, 15vw, 150px); gap: 8px; }
+  .dv-layout-caption strong { font-size: 16px; }
+  .dv-layout-caption span { font-size: 10px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .dv-preferences { padding: 20px 32px; }
+  .dv-preference-row { padding: 18px 0; }
+  .dv-layout-caption { top: 33%; gap: 8px; }
+  .dv-layout-caption strong { font-size: 20px; }
+}
